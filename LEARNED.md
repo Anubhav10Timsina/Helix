@@ -10,4 +10,8 @@
     It fetches the highest version that starts with 4.19.x 
     Best for production environments needing stability
 
+PUT vs PATCH: 
+    Put - replaces an entire resource 
+    patch - applies a partial update to a resource
+
 
