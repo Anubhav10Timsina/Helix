@@ -2,20 +2,10 @@ const express = require('express')
 const app = express();
 app.use(express.json())
 
+const dotenv = require('dotenv')
+dotenv.config();
 
-let notes = [
-    {
-        "id" : 1,
-        "title": "Grocerry"
-
-    }, 
-    {
-        "id" : 2,
-        "title": "Clothes"
-    }
-];
-
-let nextId = 1 ;
+const pool = require("./database/db");
 
 app.post('/notes', (req, res)=>{
     
@@ -32,8 +22,12 @@ app.post('/notes', (req, res)=>{
 
 })
 
-app.get('/getNotes',(req, res)=>{
-    res.status(200).json(notes)
+app.get('/getNotes', async (req, res)=>{
+
+    const result = await pool.query(
+        "SELECT * from notes"
+    );
+    res.status(200).json(result.rows)
 })
 
 app.get('/getNotes/:id',(req, res)=>{
