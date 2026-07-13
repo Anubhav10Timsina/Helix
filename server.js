@@ -5,79 +5,86 @@ app.use(express.json())
 const dotenv = require('dotenv')
 dotenv.config();
 
-const pool = require("./database/db");
+const notes = require("./database/notesRepo")
 
-app.post('/notes', (req, res)=>{
+app.post('/notes', async (req, res)=>{
     
-    newNote = req.body;
-    if(!newNote){ 
-        return res.status(400).json({
-            error : 'Note Content is required'
-        })
-    }
-    notes.push(newNote);
-    res.status(201).json({
-        message : "Note added successfully"
-    })
+    title = req.body.title
+    const result = await notes.createNote(title);
+    res.status(200).json(result)
 
 })
 
 app.get('/getNotes', async (req, res)=>{
 
-    const result = await pool.query(
-        "SELECT * from notes"
-    );
-    res.status(200).json(result.rows)
+    const result = await notes.getAllNotes();
+    res.status(200).json(result)
 })
 
-app.get('/getNotes/:id',(req, res)=>{
+app.get('/getNotes/:id',async (req, res)=>{
 
-     const noteID = parseInt(req.params.id,10)
-     const getNote = notes.find(n=>n.id === noteID)
-
-     if(!getNote){
-        res.status(404).json({
-            error : "Note Missing"
-        })
-     }
-     res.status(200).send(getNote)
-   
-})
-
-app.put('/notes/:id', (req, res)=>{
-
-    getId = parseInt(req.params.id, 10);
-    const note = notes.find(n=> n.id === getId)
-
-    if(!note){
-        res.status(404).json({
-            error : "Note not found"
-        })
+    try{
+        const noteID = parseInt(req.params.id,10)
+     
+        result = await notes.getNotesById(noteID);
+        
+        if(!result){
+           res.status(404).json({
+               "error" : "Note doesn't exist"
+           });
+        }     
+        res.status(200).json(result);  
+    }catch(error){
+        res.status(500).json({
+            "error" : "Internal Server Error"
+        });
     }
+})
 
-    note.title = req.body.title || note.title 
+app.put('/updateNotes/:id', async (req, res)=>{
 
-    res.status(200).json({
-        message : "Note Updated"
-    })
+    try{
+
+        const getId = parseInt(req.params.id, 10) ;
+        const getTitle = req.body.title ;
+        const updateNotes = await notes.updateNotesById(getTitle, getId) ;
+
+        if(!updateNotes){
+            res.status(404).json({
+                "error" : "Note not found"
+            });
+        }else{
+        res.status(200).json(updateNotes);
+        }
+
+    } catch(error){
+        console.error(error);
+        res.status(500).json({
+            "error" :error.message
+        });
+    }
 
 })
 
 app.delete('/notes/:id', (req, res)=>{
-   const getId = parseInt(req.params.id, 10)
-   const noteIndex = notes.findIndex(n=> n.id === getId)
 
-   if(noteIndex===-1){
-    res.status(404).json({
-        error : "Note doesn't exist"
-    })
-   }
+    try{
+        const getId = parseInt(req.params.id, 10)
+        const result = notes.deleteNoteById(getId);
 
-   notes.splice(noteIndex, 1);
-
-   res.status(200).json({
-    message : "removed"
-   })
+        if(!result){
+            res.status(404).json({
+                "error" : "Note not found"
+            });
+        }
+        res.status(200).json({
+            "message" : "Note Deleted"
+        });
+    }catch(error){
+        res.status(500).json({
+            "error" : "Internal Server Error"
+        });
+    }
 
    
 })
