@@ -3,6 +3,7 @@ const router = express.Router();
 const validator = require('validator');
 const auth = require('../database/authRepo');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');2
 
 router.post('/register', async (req, res)=>{
   
@@ -82,8 +83,22 @@ router.post('/login',async (req, res)=>{
                 error : "Invalid email or password"
             });
         }
+
+        const payload = {
+            sub: user.id,
+            role: user.role
+        };
+        const secret = process.env.JWT_SECRET ;
+
+        const token = jwt.sign(
+            payload,
+            secret,
+            { 
+            expiresIn: '15m'
+            }
+        );
         res.status(200).json({
-            "status" : "Successfully Logged In "
+            accessToken : token
         });
 
     }catch(error){
