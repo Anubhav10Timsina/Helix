@@ -4,6 +4,7 @@ const validator = require('validator');
 const auth = require('../database/authRepo');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');2
+const authMiddleware = require('../middleware/authMiddleware');
 
 router.post('/register', async (req, res)=>{
   
@@ -46,7 +47,7 @@ router.post('/register', async (req, res)=>{
 
 });
 
-router.post('/login',async (req, res)=>{
+router.post('/login', authMiddleware ,async (req, res)=>{
 
     try{
         const {email, password} = req.body;
